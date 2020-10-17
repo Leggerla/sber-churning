@@ -1,6 +1,5 @@
 import pandas as pd
 from joining_tables import get_train, get_shipments
-import os
 
 
 class FeatureExtractor:
@@ -11,12 +10,7 @@ class FeatureExtractor:
                             'dw_kind']
         self.other = ['s.store_id', 'ship_address_id', 'user_id', 'shipment_id', 'order_id']
 
-        self.orders = self.collect_orders()
-
-    def collect_orders(self):
-        train = get_train(self.path)
-        addresses = pd.read_csv(os.path.join(self.path, 'misc/addresses.csv'))
-        train = train.merge(addresses, on='phone_id', how='left')
+    def collect_orders(self, train):
 
         orders = get_shipments(self.path)
         orders = train[['phone_id', 'id']].drop_duplicates().merge(orders,
@@ -36,15 +30,15 @@ class FeatureExtractor:
 
         return orders
 
-    def exract_all(self):
+    def exract_all(self, orders):
         features_tables = []
         for field in self.numerical + self.categorical + self.other:
-            features_tables.append(self.extract_feature(field))
+            features_tables.append(self.extract_feature(orders, field))
 
         return pd.concat(features_tables, axis=1)
 
-    def extract_feature(self, field):
-        groupby_field = self.orders.groupby(['phone_id', 'month'])[field]
+    def extract_feature(self, orders, field):
+        groupby_field = orders.groupby(['phone_id', 'month'])[field]
         stats = None
         if field in self.numerical:
             stats = groupby_field.agg(['min', 'max', 'mean', 'median'])
