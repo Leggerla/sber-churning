@@ -9,7 +9,6 @@ def get_train(path='./'):
     train['year'] = pd.to_datetime(train['month']).dt.year
     train['month'] = pd.to_datetime(train['month']).dt.month
     train['prev_month'] = train['month'] - 1
-    # train.loc[train['prev_month'] == 0, 'prev_month'] = 12
 
     return train
 
