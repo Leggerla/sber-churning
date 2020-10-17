@@ -44,6 +44,7 @@ class FeatureExtractor:
             stats = groupby_field.agg(['min', 'max', 'mean', 'median'])
             stats.columns = [x + '_' + field for x in stats.columns]
             return stats
+
         elif field in self.categorical:
             stats = pd.DataFrame(groupby_field.value_counts()).unstack(level=2).fillna(0)
             stats.columns = stats.columns.droplevel()
