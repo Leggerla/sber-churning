@@ -1,20 +1,23 @@
 import os
 import pandas as pd
-from utils import perform_date
+from utils import *
 
-def join_train_addresses(path='./'):
+  
+def main(path='./'):
   train = pd.read_csv(os.path.join(path, 'train/train.csv'))
   addresses = pd.read_csv(os.path.join(path, 'misc/addresses.csv'))
   train_new = pd.merge(train, addresses, on=['phone_id'], how='left')
-  
-def return_shipments(path='./'):
-  shipments2020_3_1 = pd.read_csv(os.path.join(path, 'shipments/shipments2020-03-01.csv'))
-  shipments2020_4_30 = pd.read_csv(os.path.join(path, 'shipments/shipments2020-04-30.csv'))
-  shipments2020_6_29 = pd.read_csv(os.path.join(path, 'shipments/shipments2020-06-29.csv'))
-  shipments2020_1_1 = pd.read_csv(os.path.join(path, 'shipments/shipments2020-01-01.csv'))
 
-  shipments = pd.concat([shipments2020_1_1, shipments2020_3_1, shipments2020_4_30, shipments2020_6_29])
+  shipments = concat_several()
+  date_cols_shipments = ['order_created_at','order_completed_at','shipment_starts_at','shipped_at']
+  shipments = perform_date(shipments,date_cols_shipments)
+
+  # join by month
+  shipments['order_completed_at_month'] = shipments['order_completed_at'].apply(lambda x: x.month)
+
+  train_new['order_completed_at'] = pd.to_datetime(train_new['order_completed_at'])
+  train_new['order_completed_at_month'] = train_new['order_completed_at'].apply(lambda x: x.month)
+
+  train_all = pd.merge(train_new,shipments,left_on=['id','order_completed_at_month'],right_on=['ship_address_id','order_completed_at_month'],how='inner')
   
-  shipments = perform_date(shipments,date_cols)
-  
-  return shipments
+  train_all.to_hdf('train_all.h5',key='df',mode='w')
