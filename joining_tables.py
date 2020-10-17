@@ -1,20 +1,41 @@
 import os
 import pandas as pd
-from utils import perform_date
 
-def join_train_addresses(path='./'):
-  train = pd.read_csv(os.path.join(path, 'train/train.csv'))
-  addresses = pd.read_csv(os.path.join(path, 'misc/addresses.csv'))
-  train_new = pd.merge(train, addresses, on=['phone_id'], how='left')
-  
-def return_shipments(path='./'):
-  shipments2020_3_1 = pd.read_csv(os.path.join(path, 'shipments/shipments2020-03-01.csv'))
-  shipments2020_4_30 = pd.read_csv(os.path.join(path, 'shipments/shipments2020-04-30.csv'))
-  shipments2020_6_29 = pd.read_csv(os.path.join(path, 'shipments/shipments2020-06-29.csv'))
-  shipments2020_1_1 = pd.read_csv(os.path.join(path, 'shipments/shipments2020-01-01.csv'))
 
-  shipments = pd.concat([shipments2020_1_1, shipments2020_3_1, shipments2020_4_30, shipments2020_6_29])
-  
-  shipments = perform_date(shipments,date_cols)
-  
-  return shipments
+def get_train(path='./'):
+    train = pd.read_csv(os.path.join(path, 'train/train.csv'))
+    train = train.rename(columns={'order_completed_at': 'month'})
+
+    train['year'] = pd.to_datetime(train['month']).dt.year
+    train['month'] = pd.to_datetime(train['month']).dt.month
+    train['prev_month'] = train['month'] - 1
+    # train.loc[train['prev_month'] == 0, 'prev_month'] = 12
+
+    return train
+
+
+def train_test_split(df):
+    test_phone_id = pd.DataFrame(
+        df[df['month'] == 7]['phone_id'].unique(),
+        columns=['phone_id']).sample(frac=0.01).values[:, 0]
+
+    hold_out = df[df['phone_id'].isin(test_phone_id)]
+    train = df[~df['phone_id'].isin(test_phone_id)]
+
+    return train, hold_out
+
+
+def get_shipments(path='./'):
+    li = []
+    ship_dir = os.path.join(path, 'shipments')
+    for filename in sorted(os.listdir(ship_dir)):
+        df = pd.read_csv(os.path.join(ship_dir, filename))
+        li.append(df)
+    shipments = pd.concat(li, axis=0)
+
+    shipments['month'] = pd.to_datetime(shipments['order_created_at']).dt.month
+    shipments['year'] = pd.to_datetime(shipments['order_created_at']).dt.year
+
+    shipments = shipments[(shipments['year'] == 2020) | ((shipments['year'] == 2019) & (shipments['month'] == 12))]
+
+    return shipments
