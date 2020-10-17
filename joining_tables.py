@@ -6,7 +6,6 @@ def join_train_addresses(path='./'):
   train = pd.read_csv(os.path.join(path, 'train/train.csv'))
   addresses = pd.read_csv(os.path.join(path, 'misc/addresses.csv'))
   train_new = pd.merge(train, addresses, on=['phone_id'], how='left')
-  return train_new
   
 def return_shipments(path='./'):
   shipments2020_3_1 = pd.read_csv(os.path.join(path, 'shipments/shipments2020-03-01.csv'))
