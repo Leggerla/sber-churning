@@ -72,7 +72,7 @@ class FeatureExtractor:
 
             if field in self.numerical:
                 stats = groupby_field.agg(['min', 'max', 'mean', 'median'])
-                stats['mean'] = stats['mean'] / self.avg['mean']
+                stats['mean'] = stats['mean'] / self.avg[field]
                 stats.columns = [x + '_' + field for x in stats.columns]
             elif field in self.categorical:
                 stats = pd.DataFrame(groupby_field.value_counts()).unstack(level=2).fillna(0)
