@@ -16,8 +16,8 @@ class FeatureExtractor:
         orders = train[['phone_id', 'id']].drop_duplicates().merge(orders,
                                                                    left_on='id', right_on='ship_address_id',
                                                                    how='left')
-        # messages = get_messages()
-        # orders = orders.merge(messages, on='user_id', how='left')
+        messages = get_messages()
+        orders = orders.merge(messages, on='user_id', how='left')
 
         orders = orders[~orders['ship_address_id'].isna()]
 

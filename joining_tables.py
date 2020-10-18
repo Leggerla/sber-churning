@@ -20,7 +20,7 @@ def get_train(path='./'):
 
 def train_test_split(df):
     hold_out = df[df['month'] == 7]
-    train = df[~df['month'] == 7]
+    train = df[df['month'] != 7]
 
     return train, hold_out
 
