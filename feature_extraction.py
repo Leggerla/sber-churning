@@ -15,6 +15,10 @@ class FeatureExtractor:
             's.city_name', 'is_rated', 'dw_kind'
         ]
         self.other = ['s.store_id', 'ship_address_id', 'user_id', 'shipment_id', 'order_id']
+        self.week = ['week']
+        self.shop_cart = ['price', 'discount', 'quantity_x','quantity_y', 'cancelled',
+                            'Pricer::PerKilo', 'Pricer::PerItem', 'Pricer::PerPackage', 'Pricer::PerPack',
+                            'dis/price', 'replaced', 'ratio_dics']
 
     def collect_orders(self, train):
         orders = get_shipments(self.path)
@@ -43,7 +47,7 @@ class FeatureExtractor:
 
     def exract_all(self, orders):
         features_tables = []
-        for field in self.numerical + self.categorical + self.other:
+        for field in self.numerical + self.categorical + self.other + self.week + self.shop_cart:
             features_tables.append(self.extract_feature(orders, field))
 
         return pd.concat(features_tables, axis=1)
@@ -54,7 +58,6 @@ class FeatureExtractor:
         if field in self.numerical:
             stats = groupby_field.agg(['min', 'max', 'mean', 'median'])
             stats.columns = [x + '_' + field for x in stats.columns]
-            return stats
         elif field in self.categorical:
             stats = pd.DataFrame(groupby_field.value_counts()).unstack(level=2).fillna(0)
             stats.columns = stats.columns.droplevel()
@@ -62,5 +65,14 @@ class FeatureExtractor:
                 stats.columns = [x + '_' + field for x in stats.columns]
         elif field in self.other:
             stats = pd.DataFrame(groupby_field.nunique())
+        elif field == 'week':
+            day_of_month = pd.to_datetime(orders['order_created_at']).dt.day
+            orders['week'] = (day_of_month - 1) // 7 + 1
+            groupby_field = orders.groupby(['phone_id', 'month', 'week'])['shipment_id']
+            stats = pd.DataFrame(groupby_field.nunique()).unstack(level=2).fillna(0)
+            stats.columns = stats.columns.droplevel()
+            stats.columns = [str(int(x)) + '_' + 'week' for x in stats.columns]
+        elif field in self.shop_cart:
+            stats = groupby_field.sum()
 
         return stats
