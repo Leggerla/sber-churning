@@ -5,9 +5,15 @@ from joining_tables import get_train, get_shipments, get_messages
 class FeatureExtractor:
     def __init__(self, path='./'):
         self.path = path
-        self.numerical = ['total_weight', 'total_cost', 'rate', 'shipped_time', 'order_time', 'promo_total']
-        self.categorical = ['platform', 'os', 'retailer', 's.order_state', 'shipment_state',
-                            's.city_name', 'is_rated', 'dw_kind']
+        self.numerical = [
+            'total_weight', 'total_cost', 'rate', 'shipped_time', 'order_time', 'promo_total',
+            'promocode', 'shopping_cart', 'discount', 'bonus', 'promotion',
+            'other', 'empty_msgs', 'email', 'push', 'sms'
+        ]
+        self.categorical = [
+            'platform', 'os', 'retailer', 's.order_state', 'shipment_state',
+            's.city_name', 'is_rated', 'dw_kind'
+        ]
         self.other = ['s.store_id', 'ship_address_id', 'user_id', 'shipment_id', 'order_id']
 
     def collect_orders(self, train):
@@ -17,7 +23,8 @@ class FeatureExtractor:
                                                                    left_on='id', right_on='ship_address_id',
                                                                    how='left')
         messages = get_messages()
-        orders = orders.merge(messages, on='user_id', how='left')
+        messages = messages.drop(['promo_data_day','promo_data_month'], axis=1)
+        orders = orders.merge(messages, on=['user_id', 'month'], how='left')
 
         orders = orders[~orders['ship_address_id'].isna()]
 
