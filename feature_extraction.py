@@ -1,21 +1,25 @@
 import pandas as pd
-from joining_tables import get_train, get_shipments
+from joining_tables import get_train, get_shipments, get_messages
 
 
 class FeatureExtractor:
     def __init__(self, path='./'):
         self.path = path
         self.numerical = ['total_weight', 'total_cost', 'rate', 'shipped_time', 'order_time', 'promo_total']
-        self.categorical = ['platform', 'os', 'retailer', 's.order_state', 'shipment_state', 's.city_name', 'is_rated',
-                            'dw_kind']
+        self.categorical = ['platform', 'os', 'retailer', 's.order_state', 'shipment_state',
+                            's.city_name', 'is_rated', 'dw_kind']
         self.other = ['s.store_id', 'ship_address_id', 'user_id', 'shipment_id', 'order_id']
 
     def collect_orders(self, train):
-
         orders = get_shipments(self.path)
+
         orders = train[['phone_id', 'id']].drop_duplicates().merge(orders,
                                                                    left_on='id', right_on='ship_address_id',
                                                                    how='left')
+        # messages = get_messages()
+        # orders = orders.merge(messages, on='user_id', how='left')
+
+        orders = orders[~orders['ship_address_id'].isna()]
 
         orders['is_rated'] = orders['rate'].apply(lambda x: 1 if x == 0 else 0)
 

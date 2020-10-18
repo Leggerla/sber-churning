@@ -2,6 +2,11 @@ import os
 import pandas as pd
 
 
+def get_messages(path='./'):
+    messages = pd.read_csv(os.path.join(path, 'messages_dataframe.csv')).drop(['Unnamed: 0'], axis=1)
+
+    return messages
+
 def get_train(path='./'):
     train = pd.read_csv(os.path.join(path, 'train/train.csv'))
     train = train.rename(columns={'order_completed_at': 'month'})
@@ -14,12 +19,8 @@ def get_train(path='./'):
 
 
 def train_test_split(df):
-    test_phone_id = pd.DataFrame(
-        df[df['month'] == 7]['phone_id'].unique(),
-        columns=['phone_id']).sample(frac=0.01).values[:, 0]
-
-    hold_out = df[df['phone_id'].isin(test_phone_id)]
-    train = df[~df['phone_id'].isin(test_phone_id)]
+    hold_out = df[df['month'] == 7]
+    train = df[~df['month'] == 7]
 
     return train, hold_out
 
