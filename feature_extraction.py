@@ -20,7 +20,7 @@ class FeatureExtractor:
                           'dis/price', 'replaced', 'ratio_dics']
         
         self.orders = self.collect_orders()
-        self.avg = self.agreggate_average()
+        self.avg = self.aggregate_average()
         
     def aggregate_average(self):
         return self.orders.groupby(['month'])[self.numerical].mean()
