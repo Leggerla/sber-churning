@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 from joining_tables import get_train, get_shipments, get_messages
 
 
@@ -40,8 +41,10 @@ class FeatureExtractor:
 
     def exract_all(self, orders):
         features_tables = []
-        for field in self.numerical + self.categorical + self.other + self.week + self.shop_cart:
+        for field in self.numerical + self.categorical + self.other + self.week:
             features_tables.append(self.extract_feature(orders, field))
+
+        features_tables.extend(self.extract_shop_cart_features())
 
         return pd.concat(features_tables, axis=1)
 
@@ -65,7 +68,17 @@ class FeatureExtractor:
             stats = pd.DataFrame(groupby_field.nunique()).unstack(level=2).fillna(0)
             stats.columns = stats.columns.droplevel()
             stats.columns = [str(int(x)) + '_' + 'week' for x in stats.columns]
-        elif field in self.shop_cart:
-            stats = groupby_field.sum()
 
         return stats
+
+    def extract_shop_cart_features(self):
+        merge_ship = pd.read_csv(os.join.path(self.path, 'merge_ship.csv'))
+        phone_user = pd.read_csv(os.join.path(self.path, 'phone_user_train.csv'))
+        mm = merge_ship.merge(phone_user, on='user_id', how='inner')
+
+        features_tables = []
+        for field in self.shop_cart:
+
+            features_tables.append(mm.groupby(['phone_id', 'month'])[field].sum())
+
+        return features_tables
