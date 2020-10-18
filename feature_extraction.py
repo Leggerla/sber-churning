@@ -36,7 +36,7 @@ class FeatureExtractor:
         orders = extra[['phone_id', 'id']].drop_duplicates().merge(orders,
                                                                    left_on='id', right_on='ship_address_id',
                                                                    how='left')
-        messages = get_messages()
+        messages = get_messages(self.path)
         orders = orders.merge(messages, on=['user_id', 'month'], how='left')
 
         orders = orders[~orders['ship_address_id'].isna()]
