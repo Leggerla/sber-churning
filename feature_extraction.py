@@ -6,7 +6,7 @@ from joining_tables import get_train, get_shipments, get_messages
 class FeatureExtractor:
     def __init__(self, path='./'):
         self.path = path
-        self.numerical = ['total_weight', 'total_cost', 'rate', 'shipped_time', 'order_time', 'promo_total']
+        self.numerical = ['total_weight', 'total_cost', 'rate', 'order_time', 'promo_total']
         self.categorical = ['platform', 'os', 'retailer', 's.order_state',
                             'shipment_state', 'is_rated', 'dw_kind', 'is_moscow',
                             'promocode', 'shopping_cart', 'discount', 'bonus', 'promotion',
@@ -43,10 +43,6 @@ class FeatureExtractor:
 
         orders['is_rated'] = orders['rate'].apply(lambda x: 1 if x == 0 else 0)
 
-        orders['shipped_time'] = (
-                                         pd.to_datetime(orders['shipped_at']) -
-                                         pd.to_datetime(orders['shipment_starts_at'])
-                                 ).dt.total_seconds() // 60
         orders['order_time'] = (
                                        pd.to_datetime(orders['order_completed_at']) -
                                        pd.to_datetime(orders['order_created_at'])
