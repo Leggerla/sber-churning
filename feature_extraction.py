@@ -33,7 +33,7 @@ class FeatureExtractor:
         extra = train.merge(addresses, on='phone_id', how='left')
         orders = get_shipments(self.path)
 
-        orders = train[['phone_id', 'id']].drop_duplicates().merge(orders,
+        orders = extra[['phone_id', 'id']].drop_duplicates().merge(orders,
                                                                    left_on='id', right_on='ship_address_id',
                                                                    how='left')
         messages = get_messages()
