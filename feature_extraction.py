@@ -29,6 +29,8 @@ class FeatureExtractor:
     def collect_orders(self):
         
         train = get_train(self.path)
+        addresses = pd.read_csv(self.path.joinpath('./misc/addresses.csv'))
+        extra = train.merge(addresses, on='phone_id', how='left')
         orders = get_shipments(self.path)
 
         orders = train[['phone_id', 'id']].drop_duplicates().merge(orders,
