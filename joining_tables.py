@@ -7,6 +7,7 @@ def get_messages(path='./'):
 
     return messages
 
+
 def get_train(path='./'):
     train = pd.read_csv(os.path.join(path, 'train/train.csv'))
     train = train.rename(columns={'order_completed_at': 'month'})
