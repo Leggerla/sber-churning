@@ -6,14 +6,17 @@ from joining_tables import get_train, get_shipments, get_messages
 class FeatureExtractor:
     def __init__(self, path='./'):
         self.path = path
-        self.numerical = ['total_weight', 'total_cost', 'rate', 'order_time', 'promo_total']
+        self.numerical = ['total_weight', 'total_cost', 'rate',
+                          # 'shipped_time',
+                          'order_time', 'promo_total', 'is_rated',
+                          'promocode', 'shopping_cart', 'discount', 'bonus', 'promotion',
+                          'other', 'promo_data_day', 'promo_data_month', 'empty_msgs',
+                          'email', 'push', 'sms'
+                          ]
         self.categorical = ['platform', 'os', 'retailer', 's.order_state',
-                            'shipment_state', 'is_rated', 'dw_kind', 'is_moscow',
-                            'promocode', 'shopping_cart', 'discount', 'bonus', 'promotion',
-                            'other', 'promo_data_day', 'promo_data_month', 'empty_msgs',
-                            'email', 'push', 'sms'
+                            'shipment_state', 'dw_kind',
                             ]
-        self.other = ['s.store_id', 'ship_address_id', 'user_id', 'shipment_id', 'order_id']
+        self.other = ['s.store_id', 'ship_address_id', 'user_id', 'shipment_id', 'order_id', 's.city_name']
         self.week = ['week']
         self.shop_cart = ['price', 'discount', 'quantity_x', 'quantity_y', 'cancelled',
                           'Pricer::PerKilo', 'Pricer::PerItem', 'Pricer::PerPackage', 'Pricer::PerPack',
@@ -38,7 +41,6 @@ class FeatureExtractor:
                                                                    how='left')
         messages = get_messages(self.path)
         orders = orders.merge(messages, on=['user_id', 'month'], how='left')
-
         orders = orders[~orders['ship_address_id'].isna()]
 
         orders['is_rated'] = orders['rate'].apply(lambda x: 1 if x == 0 else 0)
@@ -48,7 +50,9 @@ class FeatureExtractor:
                                        pd.to_datetime(orders['order_created_at'])
                                ).dt.total_seconds() // 60
 
-        orders['is_moscow'] = (orders['s.city_name'] == 'Москва').astype(int)
+        
+        orders.loc[orders['s.city_name'] == 'Москва', 's.city_name'] = 'Not Moscow'
+        orders.loc[orders['s.city_name'] != 'Москва', 's.city_name'] = 'Moscow'
 
         return orders
 
