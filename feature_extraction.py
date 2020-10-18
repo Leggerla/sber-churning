@@ -56,10 +56,10 @@ class FeatureExtractor:
 
         return orders
 
-    def exract_all(self, orders):
+    def exract_all(self):
         features_tables = []
         for field in self.numerical + self.categorical + self.other + self.week:
-            features_tables.append(self.extract_feature(orders, field))
+            features_tables.append(self.extract_feature(self.orders, field))
 
         features_tables.extend(self.extract_shop_cart_features())
 
