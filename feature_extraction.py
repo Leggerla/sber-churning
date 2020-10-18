@@ -18,8 +18,17 @@ class FeatureExtractor:
         self.shop_cart = ['price', 'discount', 'quantity_x', 'quantity_y', 'cancelled',
                           'Pricer::PerKilo', 'Pricer::PerItem', 'Pricer::PerPackage', 'Pricer::PerPack',
                           'dis/price', 'replaced', 'ratio_dics']
+        
+        self.orders = self.collect_orders()
+        self.avg = self.agreggate_average()
+        
+    def aggregate_average(self):
+        return self.orders.groupby(['month'])[self.numerical].mean()
+        
 
-    def collect_orders(self, train):
+    def collect_orders(self):
+        
+        train = pd.read_csv(os.path.join(self.path, 'train/train.csv'))
         orders = get_shipments(self.path)
 
         orders = train[['phone_id', 'id']].drop_duplicates().merge(orders,
@@ -61,6 +70,7 @@ class FeatureExtractor:
 
             if field in self.numerical:
                 stats = groupby_field.agg(['min', 'max', 'mean', 'median'])
+                stats = stats / self.avg
                 stats.columns = [x + '_' + field for x in stats.columns]
             elif field in self.categorical:
                 stats = pd.DataFrame(groupby_field.value_counts()).unstack(level=2).fillna(0)
