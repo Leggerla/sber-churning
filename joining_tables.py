@@ -14,7 +14,6 @@ def get_train(path='./'):
 
     train['year'] = pd.to_datetime(train['month']).dt.year
     train['month'] = pd.to_datetime(train['month']).dt.month
-    # train['y'] = train['month'] - 1
 
     return train
 
